@@ -10,7 +10,7 @@
     
     
     this.client = new Faye.Client('http://localhost:4567/faye');    
-    this.publication = client.publish('/foo', {text: 'Hi there'});
+    this.publication = this.client.publish('/foo', {text: 'Hi there'});
     this.publication.then(function() {
       console.log('Message received by server!');
     }, function(error) {
