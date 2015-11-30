@@ -1,0 +1,23 @@
+{
+  "name": "snake_multiplayer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "faye": "^1.1.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danielisaacweinstein/snake_multiplayer.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/danielisaacweinstein/snake_multiplayer/issues"
+  },
+  "homepage": "https://github.com/danielisaacweinstein/snake_multiplayer#readme"
+}
