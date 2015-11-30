@@ -10,13 +10,6 @@
     
     
     this.client = new Faye.Client('http://localhost:4567/');    
-    this.publication = this.client.publish('/foo', {text: 'Hi there'});
-    this.publication.then(function() {
-      console.log('Message received by server!');
-    }, function(error) {
-      console.log('There was a problem: ' + error.message);
-    });
-    
     this.bodies = [new HeadBlock(this)];
     this.currentDirection = null;
     
@@ -71,6 +64,7 @@
         
         this.move();
         this.lastMove = now;
+        this.game.client.publish('/foo', this.direction)
         this.moveReady = false;
       }
     },
