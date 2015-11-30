@@ -9,7 +9,7 @@
     this.center = { x: this.size.x / 2, y: this.size.y / 2 };
     
     
-    this.client = new Faye.Client('http://localhost:4567/faye');    
+    this.client = new Faye.Client('http://localhost:4567/');    
     this.publication = this.client.publish('/foo', {text: 'Hi there'});
     this.publication.then(function() {
       console.log('Message received by server!');
