@@ -12,8 +12,8 @@ get '/' do
     end
 
     ws.on(:message) do |msg|
-      ws.send(msg.data.reverse)  # Reverse and reply
-
+      #ws.send(msg.data.reverse)  # Reverse and reply
+      puts msg.data
       puts "GOT A MESSAGE"
     end
 

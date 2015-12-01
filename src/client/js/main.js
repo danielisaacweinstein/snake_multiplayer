@@ -1,5 +1,5 @@
 ;(function() {
-    
+
   var BLOCK_SIZE = 10;
 
   var Game = function() {
@@ -7,12 +7,46 @@
 
     this.size = { x: screen.canvas.width, y: screen.canvas.height };
     this.center = { x: this.size.x / 2, y: this.size.y / 2 };
-    
-    
-    this.client = new Faye.Client('http://localhost:4567/');    
+
+    this.socket = new WebSocket('ws://localhost:4567');
+    this.dataReceived = null;
+
+    var self = this;
+    this.socket.onopen = function() {
+        this.isopen = true;
+        console.log("Connected!");
+    }
+
+    this.socket.onmessage = function(e) {
+        if (typeof e.data == "string") {
+            self.dataReceived = JSON.parse(e.data);
+        }
+    }
+
+    this.socket.onclose = function(e) {
+        console.log("Connection closed.");
+        this.socket = null;
+        this.isopen = false;
+    }
+
+    this.socket.sendMessage = function(data, type) {
+      if (this.isopen) {
+          switch(type) {
+              case 'json':
+                  this.send(JSON.stringify(data));
+                  break;
+              case 'string':
+                  this.send(data);
+                  break;
+          }
+      } else {
+          console.log("Connection not opened.")
+      }
+    }
+
     this.bodies = [new HeadBlock(this)];
     this.currentDirection = null;
-    
+
     var self = this;
     var tick = function() {
       self.update();
@@ -39,7 +73,7 @@
       }
     }
   };
-  
+
   var HeadBlock = function(game) {
     this.game = game;
     this.center = { x: this.game.center.x, y: this.game.center.y };
@@ -53,7 +87,7 @@
 
     this.addBlock = false;
   };
-  
+
   HeadBlock.prototype = {
     update: function() {
       this.handleKeyboard();
@@ -61,10 +95,10 @@
       var now = new Date().getTime();
       if ((now > this.lastMove + 100) && (this.moveReady === true)) {
         this.game.currentDirection = this.direction;
-        
+
         this.move();
         this.lastMove = now;
-        this.game.client.publish('/foo', this.direction)
+        this.game.socket.sendMessage(JSON.stringify(this.direction), 'json');
         this.moveReady = false;
       }
     },
@@ -122,7 +156,7 @@
 
     this.KEYS = { LEFT: 37, RIGHT: 39, UP: 38, DOWN: 40 };
   };
-  
+
 
   var drawRect = function(screen, body, color) {
     screen.fillStyle = color;
