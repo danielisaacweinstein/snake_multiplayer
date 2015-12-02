@@ -1,3 +1,5 @@
+require_relative 'multisnake'
+require 'json'
 require 'bundler'
 Bundler.require
 
@@ -8,13 +10,21 @@ get '/' do
     ws = Faye::WebSocket.new(request.env)
 
     ws.on(:open) do |event|
-      puts 'On Open'
+      # puts 'On Open'
     end
 
     ws.on(:message) do |msg|
-      #ws.send(msg.data.reverse)  # Reverse and reply
+      # ws.send(msg.data.reverse)  # Reverse and reply
+
+      # body = {:HeadBlock => {:position => {:x => 5, :y => 5},
+      #                        :color => "red"}
+      #        }
+
+      # puts JSON.generate(body)
+      # ws.send(JSON.generate(body))
+
       puts msg.data
-      puts "GOT A MESSAGE"
+
     end
 
     ws.on(:close) do |event|

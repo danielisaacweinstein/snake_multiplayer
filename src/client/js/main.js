@@ -5,11 +5,10 @@
   var Game = function() {
     var screen = document.getElementById("screen").getContext('2d');
 
-    this.size = { x: screen.canvas.width, y: screen.canvas.height };
-    this.center = { x: this.size.x / 2, y: this.size.y / 2 };
-
     this.socket = new WebSocket('ws://localhost:4567');
     this.dataReceived = null;
+
+    var keyhandler = new Keyboarder(this.socket);
 
     var self = this;
     this.socket.onopen = function() {
@@ -18,9 +17,10 @@
     }
 
     this.socket.onmessage = function(e) {
-        if (typeof e.data == "string") {
-            self.dataReceived = JSON.parse(e.data);
-        }
+      if (typeof e.data == "string") {
+          self.dataReceived = JSON.parse(e.data);
+          console.log(self.dataReceived);
+      }
     }
 
     this.socket.onclose = function(e) {
@@ -43,107 +43,24 @@
           console.log("Connection not opened.")
       }
     }
-
-    this.bodies = [new HeadBlock(this)];
-    this.currentDirection = null;
-
-    var self = this;
-    var tick = function() {
-      self.update();
-      self.draw(screen);
-      requestAnimationFrame(tick);
-    };
-
-    tick();
   };
 
   Game.prototype = {
-    update: function() {
-      for (var i = 0; i < this.bodies.length; i++) {
-        if (this.bodies[i].update !== undefined) {
-          this.bodies[i].update();
-        }
-      }
-    },
-
     draw: function(screen) {
       screen.clearRect(0, 0, this.size.x, this.size.y);
-      for (var i = 0; i < this.bodies.length; i++) {
-        this.bodies[i].draw(screen);
-      }
+
+      // Draw based on JSON from server
     }
   };
 
-  var HeadBlock = function(game) {
-    this.game = game;
-    this.center = { x: this.game.center.x, y: this.game.center.y };
-    this.direction = { x: 1, y: 0 };
-    this.moveReady = false;
-    this.size = { x: BLOCK_SIZE, y: BLOCK_SIZE };
-    this.blocks = [];
 
-    this.keyboarder = new Keyboarder();
-    this.lastMove = 0;
-
-    this.addBlock = false;
-  };
-
-  HeadBlock.prototype = {
-    update: function() {
-      this.handleKeyboard();
-
-      var now = new Date().getTime();
-      if ((now > this.lastMove + 100) && (this.moveReady === true)) {
-        this.game.currentDirection = this.direction;
-
-        this.move();
-        this.lastMove = now;
-        this.game.socket.sendMessage(JSON.stringify(this.direction), 'json');
-        this.moveReady = false;
-      }
-    },
-
-    draw: function(screen) {
-      drawRect(screen, this, "black");
-    },
-
-    handleKeyboard: function() {
-      if (this.keyboarder.isDown(this.keyboarder.KEYS.LEFT) &&
-          this.direction.x !== 1) {
-        this.direction.x = -1;
-        this.direction.y = 0;
-        this.moveReady = true;
-      } else if (this.keyboarder.isDown(this.keyboarder.KEYS.RIGHT) &&
-                 this.direction.x !== -1) {
-        this.direction.x = 1;
-        this.direction.y = 0;
-        this.moveReady = true;
-      }
-
-      if (this.keyboarder.isDown(this.keyboarder.KEYS.UP) &&
-          this.direction.y !== 1) {
-        this.direction.y = -1;
-        this.direction.x = 0;
-        this.moveReady = true;
-      } else if (this.keyboarder.isDown(this.keyboarder.KEYS.DOWN) &&
-                 this.direction.y !== -1) {
-        this.direction.y = 1;
-        this.direction.x = 0;
-        this.moveReady = true;
-      }
-    },
-
-    move: function() {
-      this.center.x += this.direction.x * BLOCK_SIZE;
-      this.center.y += this.direction.y * BLOCK_SIZE;
-    }
-  };
-
-  var Keyboarder = function() {
+  var Keyboarder = function(socket) {
     var keyState = {};
 
     window.addEventListener('keydown', function(e) {
       keyState[e.keyCode] = true;
+      socket.sendMessage(e.keyCode, "json");
+      // console.log("key pressed!")
     });
 
     window.addEventListener('keyup', function(e) {
