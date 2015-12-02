@@ -23,6 +23,7 @@ get '/' do
       # puts JSON.generate(body)
       # ws.send(JSON.generate(body))
 
+      ws.send(msg.data.reverse)  # Reverse and reply
       puts msg.data
 
     end
