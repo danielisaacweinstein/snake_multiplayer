@@ -30,7 +30,6 @@ get '/' do
 
       # ws.send(@game.get_state.to_s)
       # puts msg.data
-
     end
 
     ws.on(:close) do |event|

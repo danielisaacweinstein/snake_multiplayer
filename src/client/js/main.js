@@ -10,6 +10,30 @@
 
     var keyhandler = new Keyboarder(this.socket);
 
+    // this.mockupData = {
+    //   board: {size: {width: 310, height: 310}},
+    //   snakes: [
+    //     {
+    //       headblock: { center: {x: 100, y: 100}, color: 'black', size: {x: 10, y: 10} },
+    //       bodyblocks: [
+    //         { center: {x: 100, y: 110}, color: 'black', size: {x: 10, y: 10} },
+    //         { center: {x: 100, y: 120}, color: 'black', size: {x: 10, y: 10} },
+    //         { center: {x: 90, y: 120}, color: 'black', size: {x: 10, y: 10} },
+    //         { center: {x: 90, y: 130}, color: 'black', size: {x: 10, y: 10} }
+    //       ]
+    //     },
+    //     {
+    //       headblock: { center: {x: 20, y: 100}, color: 'black', size: {x: 10, y: 10} },
+    //       bodyblocks: [
+    //         { center: {x: 20, y: 110}, color: 'black', size: {x: 10, y: 10} },
+    //         { center: {x: 20, y: 120}, color: 'black', size: {x: 10, y: 10} },
+    //         { center: {x: 10, y: 120}, color: 'black', size: {x: 10, y: 10} },
+    //         { center: {x: 10, y: 130}, color: 'black', size: {x: 10, y: 10} }
+    //       ]
+    //     }
+    //   ]
+    // };
+
     var self = this;
     this.socket.onopen = function() {
         this.isopen = true;
@@ -19,9 +43,12 @@
     this.socket.onmessage = function(e) {
       if (typeof e.data == "string") {
           self.dataReceived = JSON.parse(e.data);
+          //self.dataReceived = self.mockupData;
+
+          self.draw(screen);
           console.log(self.dataReceived);
       }
-    }
+    }.bind(screen)
 
     this.socket.onclose = function(e) {
         console.log("Connection closed.");
@@ -47,7 +74,18 @@
 
   Game.prototype = {
     draw: function(screen) {
-      screen.clearRect(0, 0, this.size.x, this.size.y);
+      data = this.dataReceived;
+
+      // Clear screen
+      screen.clearRect(0, 0, data.board.size.x, data.board.size.y);
+
+      // Draw the bodies
+      data.snakes.map(function(snake){
+        drawRect(screen, snake.headblock, snake.headblock.color);
+        snake.bodyblocks.map(function(bodyBlock){
+          drawRect(screen, bodyBlock, bodyBlock.color);
+        }.bind(screen));
+      }.bind(screen));
 
       // Draw based on JSON from server
     }
