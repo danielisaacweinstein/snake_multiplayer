@@ -11,6 +11,7 @@ get '/' do
 
     ws.on(:open) do |event|
       # puts 'On Open'
+      @game = MultisnakeGame.new()
     end
 
     ws.on(:message) do |msg|
@@ -23,7 +24,12 @@ get '/' do
       # puts JSON.generate(body)
       # ws.send(JSON.generate(body))
 
-      puts msg.data
+      # ws.send(@game.get_state)
+      json_message = JSON.generate(@game.get_state)
+      ws.send(json_message)
+
+      # ws.send(@game.get_state.to_s)
+      # puts msg.data
 
     end
 
