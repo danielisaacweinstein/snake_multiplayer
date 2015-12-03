@@ -1,4 +1,5 @@
 require_relative 'multisnake'
+require 'sinatra/base'
 require 'json'
 require 'bundler'
 Bundler.require
@@ -10,26 +11,17 @@ get '/' do
     ws = Faye::WebSocket.new(request.env)
 
     ws.on(:open) do |event|
-      # puts 'On Open'
+      # check what's already running
       @game = MultisnakeGame.new()
     end
 
     ws.on(:message) do |msg|
-      # ws.send(msg.data.reverse)  # Reverse and reply
+      key_code = msg.data.to_i
 
-      # body = {:HeadBlock => {:position => {:x => 5, :y => 5},
-      #                        :color => "red"}
-      #        }
-
-      # puts JSON.generate(body)
-      # ws.send(JSON.generate(body))
-
-      # ws.send(@game.get_state)
-      json_message = JSON.generate(@game.get_state)
+      state = @game.tick(key_code)
+      json_message = JSON.generate(state)
+      puts json_message
       ws.send(json_message)
-
-      # ws.send(@game.get_state.to_s)
-      # puts msg.data
     end
 
     ws.on(:close) do |event|
