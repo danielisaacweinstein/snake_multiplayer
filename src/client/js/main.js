@@ -75,9 +75,12 @@
   Game.prototype = {
     draw: function(screen) {
       data = this.dataReceived;
+      console.log(data)
 
       // Clear screen
-      screen.clearRect(0, 0, data.board.size.x, data.board.size.y);
+      screen.clearRect(0, 0, data.board.size.width, data.board.size.height);
+      // console.log(data.board.size.x)
+      // console.log(data.board.size.y)
 
       // Draw the bodies
       data.snakes.map(function(snake){

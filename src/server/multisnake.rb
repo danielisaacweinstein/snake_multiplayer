@@ -12,7 +12,6 @@ class MultisnakeGame
 		@bodies = []
 		@bodies << HeadBlock.new(self)
 
-		add_food
 	end
 
 	# In the JavaScript version, we ultimately got keyboard state
