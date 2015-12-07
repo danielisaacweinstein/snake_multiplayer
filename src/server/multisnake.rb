@@ -40,7 +40,7 @@ class MultisnakeGame
       body.update if body.class.method_defined?(:update)
     end
 
-    # Report collisions
+    report_collisions(@bodies)
   end
 
   def get_state
@@ -61,28 +61,41 @@ class MultisnakeGame
 
   def random_square
     rand_generator = Random.new()
-    
+
     {:x => (@size[:x] / @BLOCK_SIZE * rand_generator.rand).floor * @BLOCK_SIZE + @BLOCK_SIZE / 2,
      :y => (@size[:y] / @BLOCK_SIZE * rand_generator.rand).floor * @BLOCK_SIZE + @BLOCK_SIZE / 2}
   end
 
   def colliding?(b1, b2)
+    # binding.pry if b1.class.name == "FoodBlock"
+    puts b1
+    puts b2
     !(b1.eql?(b2) or
-        b1.center[:x] + b1.size[:x] / 2 <= b2[:center][:x] - b2[:size][:x] / 2 or
-        b1.center[:y] + b1.size[:y] / 2 <= b2[:center][:y] - b2[:size][:y] / 2 or
-        b1.center[:x] - b1.size[:x] / 2 >= b2[:center][:x] + b2[:size][:x] / 2 or
-        b1.center[:y] - b1.size[:y] / 2 >= b2[:center][:y] + b2[:size][:y] / 2
+        b1[:center][:x] + b1[:size][:x] / 2 <= b2[:center][:x] - b2[:size][:x] / 2 or
+        b1[:center][:y] + b1[:size][:y] / 2 <= b2[:center][:y] - b2[:size][:y] / 2 or
+        b1[:center][:x] - b1[:size][:x] / 2 >= b2[:center][:x] + b2[:size][:x] / 2 or
+        b1[:center][:y] - b1[:size][:y] / 2 >= b2[:center][:y] + b2[:size][:y] / 2
+
+
+        # b1.center[:x] + b1.size[:x] / 2 <= b2.center[:x] - b2.size[:x] / 2 or
+        # b1.center[:y] + b1.size[:y] / 2 <= b2.center[:y] - b2.size[:y] / 2 or
+        # b1.center[:x] - b1.size[:x] / 2 >= b2.center[:x] + b2.size[:x] / 2 or
+        # b1.center[:y] - b1.size[:y] / 2 >= b2.center[:y] + b2.size[:y] / 2
       )
   end
 
   def square_free?(new_center)
     collision = @bodies.select do |body|
-      colliding?(body, {:center => new_center,
+      colliding?(body.get_object, {:center => new_center,
                            :size => {:x => @BLOCK_SIZE,
                                      :y => @BLOCK_SIZE}})
     end
 
     return collision.length == 0
+  end
+
+  def remove_body(body)
+    @bodies.delete(body)
   end
 end
 
@@ -102,6 +115,10 @@ class FoodBlock
     puts "CENTER AND SIZE"
     puts @center
     puts @size
+  end
+
+  def collision(other_body)
+    @game.remove_body(self) if other_body.class.name == "HeadBlock"
   end
 
   def get_object
@@ -134,6 +151,16 @@ class HeadBlock
     end
   end
 
+  def collision(other_body)
+    puts "HeadBlock collision ==> death"
+    puts "EATEN" if other_body.class.name == "FoodBlock"
+  end
+
+  def eat
+    @add_block = true
+    @game.add_food
+  end
+
   def handle_keyboard(key_code)
     @KEYS = {:LEFT => 37, :RIGHT => 39, :UP => 38, :DOWN => 40}
 
@@ -156,9 +183,50 @@ class HeadBlock
     prev_block_center = {:x => @center[:x], :y => @center[:y]}
     @center[:x] += @direction[:x] * @BLOCK_SIZE
     @center[:y] += @direction[:y] * @BLOCK_SIZE
+
+    # if add_block == false
+    #   block = new BodyBlock(@game, prev_block_center)
+    #   @game.add_body(block)
+    #   @
+
+    # end
+
   end
 
   def get_object
     {:center => @center, :color => "red", :size => {:x => 10, :y => 10}}
   end
 end
+
+def report_collisions(bodies)
+  collisions = []
+
+  # binding.pry
+
+  for i in 0..(bodies.length - 1) do
+    for j in (i + 1)..(bodies.length - 1) do
+      collisions << [bodies[i], bodies[j]] if colliding?(bodies[i], bodies[j])
+    end
+  end
+
+  collisions.each_with_index do |collision, i|
+    if collisions[i][0].class.method_defined?(:collision)
+      collisions[i][0].collision(collisions[i][1])
+    end
+
+    if collisions[i][1].class.method_defined?(:collision)
+      collisions[i][1].collision(collisions[i][0])
+    end
+  end
+end
+
+
+
+
+
+
+
+
+
+
+
