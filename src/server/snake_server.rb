@@ -19,9 +19,9 @@ get '/' do
       key_code = msg.data.to_i
 
       state = @game.tick(key_code)
-      json_message = JSON.generate(state)
-      puts json_message
-      ws.send(json_message)
+      json_game_state = JSON.generate(state)
+      # puts json_game_state
+      ws.send(json_game_state)
     end
 
     ws.on(:close) do |event|

@@ -1,17 +1,26 @@
 class MultisnakeGame
-	attr_accessor :center, :size, :BLOCK_SIZE
+	attr_accessor :center, :size, :key_code, :BLOCK_SIZE
 
 	def initialize()
 		@SCREEN_HEIGHT = 500
 		@SCREEN_WIDTH = 500
 		@BLOCK_SIZE = 10
-		@size = {:x => @SCREEN_HEIGHT, :y => @SCREEN_WIDTH}
+		@size = {:x => @SCREEN_WIDTH, :y => @SCREEN_HEIGHT}
 		@center = {:x => @size[:x] / 2, :y => @size[:y] / 2}
 
 		@bodies = []
 		@bodies << HeadBlock.new(self)
+		add_food
 
 	end
+
+	def add_food
+    add_body(FoodBlock.new(self))
+	end
+
+  def add_body(body)
+    @bodies << body
+  end
 
 	# In the JavaScript version, we ultimately got keyboard state
 	# from the Keyboarder object that was created on the headblock.
@@ -20,14 +29,18 @@ class MultisnakeGame
 	# which speaks to the server. Passing it through tick. Not sure
 	# if this is an unwise design choice.
 	def tick(key_code)
-		update(key_code)
+		@key_code = key_code
+
+		update
 		get_state
 	end
 
-	def update(key_code)
+	def update
 		@bodies.each do |body|
-			body.update(key_code) if body.class.method_defined?(:update)
+			body.update if body.class.method_defined?(:update)
 		end
+
+		# Report collisions
 	end
 
 	def get_state
@@ -46,14 +59,66 @@ class MultisnakeGame
 		mockup_data
 	end
 
+  def random_square
+    rand_generator = Random.new()
+
+    {:x => (@size[:x] / @BLOCK_SIZE * rand_generator.rand).floor * @BLOCK_SIZE + @BLOCK_SIZE / 2,
+     :y => (@size[:y] / @BLOCK_SIZE * rand_generator.rand).floor * @BLOCK_SIZE + @BLOCK_SIZE / 2}
+  end
+
+  def colliding?(b1, b2)
+    # puts "HERE IT COMES"
+
+    # binding.pry
+    !(b1.eql?(b2) or
+        b1.center[:x] + b1.size[:x] / 2 <= b2[:center][:x] - b2[:size][:x] / 2 or
+        b1.center[:y] + b1.size[:y] / 2 <= b2[:center][:y] - b2[:size][:y] / 2 or
+        b1.center[:x] - b1.size[:x] / 2 >= b2[:center][:x] + b2[:size][:x] / 2 or
+        b1.center[:y] - b1.size[:y] / 2 >= b2[:center][:y] + b2[:size][:y] / 2
+      )
+  end
+
+  def square_free?(new_center)
+    collision = @bodies.select do |body|
+      colliding?(body, {:center => new_center,
+                           :size => {:x => @BLOCK_SIZE,
+                                     :y => @BLOCK_SIZE}})
+    end
+
+    return collision.length == 0
+  end
+end
+
+class FoodBlock
+  attr_accessor :center, :size
+
+  def initialize(game)
+    @center
+
+    while !defined?(@center) do
+      random_center = game.random_square
+      @center = random_center if game.square_free?(random_center)
+    end
+
+    @size = {:x => game.BLOCK_SIZE, :y => game.BLOCK_SIZE}
+
+    puts "CENTER AND SIZE"
+    puts @center
+    puts @size
+  end
+
+  def get_object
+    {:center => @center, :color => "green", :size => {:x => 10, :y => 10}}
+  end
 end
 
 class HeadBlock
 	attr_accessor :center, :size, :color
 
 	def initialize(game)
-		@BLOCK_SIZE = game.BLOCK_SIZE
-		@center = {:x => game.center[:x], :y => game.center[:y]}
+		@game = game
+		@BLOCK_SIZE = @game.BLOCK_SIZE
+		@center = {:x => @game.center[:x], :y => @game.center[:y]}
 		@direction = {:x => 1, :y => 0}
 		@size = {:x => @BLOCK_SIZE, :y => @BLOCK_SIZE}
 		@blocks = []
@@ -62,8 +127,8 @@ class HeadBlock
 		@add_block = false
 	end
 
-	def update(key_code)
-		handle_keyboard(key_code)
+	def update
+		handle_keyboard(@game.key_code)
 
 		now = Time.now
 		if (now > @last_move)
