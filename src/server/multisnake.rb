@@ -67,20 +67,11 @@ class MultisnakeGame
   end
 
   def colliding?(b1, b2)
-    # binding.pry if b1.class.name == "FoodBlock"
-    puts b1
-    puts b2
     !(b1.eql?(b2) or
         b1[:center][:x] + b1[:size][:x] / 2 <= b2[:center][:x] - b2[:size][:x] / 2 or
         b1[:center][:y] + b1[:size][:y] / 2 <= b2[:center][:y] - b2[:size][:y] / 2 or
         b1[:center][:x] - b1[:size][:x] / 2 >= b2[:center][:x] + b2[:size][:x] / 2 or
         b1[:center][:y] - b1[:size][:y] / 2 >= b2[:center][:y] + b2[:size][:y] / 2
-
-
-        # b1.center[:x] + b1.size[:x] / 2 <= b2.center[:x] - b2.size[:x] / 2 or
-        # b1.center[:y] + b1.size[:y] / 2 <= b2.center[:y] - b2.size[:y] / 2 or
-        # b1.center[:x] - b1.size[:x] / 2 >= b2.center[:x] + b2.size[:x] / 2 or
-        # b1.center[:y] - b1.size[:y] / 2 >= b2.center[:y] + b2.size[:y] / 2
       )
   end
 
@@ -103,6 +94,7 @@ class FoodBlock
   attr_accessor :center, :size
 
   def initialize(game)
+    @game = game
     @center
 
     while !defined?(@center) do
@@ -112,9 +104,6 @@ class FoodBlock
 
     @size = {:x => game.BLOCK_SIZE, :y => game.BLOCK_SIZE}
 
-    puts "CENTER AND SIZE"
-    puts @center
-    puts @size
   end
 
   def collision(other_body)
@@ -152,8 +141,9 @@ class HeadBlock
   end
 
   def collision(other_body)
-    puts "HeadBlock collision ==> death"
-    puts "EATEN" if other_body.class.name == "FoodBlock"
+    # puts "HeadBlock collision ==> death"
+    # puts "EATEN" if other_body.class.name == "FoodBlock"
+    eat
   end
 
   def eat
@@ -184,12 +174,18 @@ class HeadBlock
     @center[:x] += @direction[:x] * @BLOCK_SIZE
     @center[:y] += @direction[:y] * @BLOCK_SIZE
 
-    # if add_block == false
-    #   block = new BodyBlock(@game, prev_block_center)
-    #   @game.add_body(block)
-    #   @
+    if @add_block == true
+      block = BodyBlock.new(@game, prev_block_center)
+      @game.add_body(block)
+      @blocks << block
+      @add_block = false
+    end
 
-    # end
+    @blocks.each_with_index do |block, i|
+      old_center = @blocks[i].center
+      @blocks[i].center = {:x => prev_block_center[:x], :y => prev_block_center[:y]}
+      prev_block_center = old_center
+    end
 
   end
 
@@ -198,10 +194,22 @@ class HeadBlock
   end
 end
 
+class BodyBlock
+  attr_accessor :center, :size
+
+  def initialize(game, center)
+    @game = game
+    @center = center
+    @size = game.BLOCK_SIZE
+  end
+
+  def get_object
+    {:center => @center, :color => "black", :size => {:x => @game.BLOCK_SIZE, :y => @game.BLOCK_SIZE}}
+  end
+end
+
 def report_collisions(bodies)
   collisions = []
-
-  # binding.pry
 
   for i in 0..(bodies.length - 1) do
     for j in (i + 1)..(bodies.length - 1) do
@@ -219,14 +227,3 @@ def report_collisions(bodies)
     end
   end
 end
-
-
-
-
-
-
-
-
-
-
-
