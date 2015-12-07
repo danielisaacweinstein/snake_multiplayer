@@ -1,11 +1,10 @@
-BLOCK_SIZE = 10
-
 class MultisnakeGame
-	attr_accessor :center, :size
+	attr_accessor :center, :size, :BLOCK_SIZE
 
 	def initialize()
 		@SCREEN_HEIGHT = 500
 		@SCREEN_WIDTH = 500
+		@BLOCK_SIZE = 10
 		@size = {:x => @SCREEN_HEIGHT, :y => @SCREEN_WIDTH}
 		@center = {:x => @size[:x] / 2, :y => @size[:y] / 2}
 
@@ -53,9 +52,10 @@ class HeadBlock
 	attr_accessor :center, :size, :color
 
 	def initialize(game)
+		@BLOCK_SIZE = game.BLOCK_SIZE
 		@center = {:x => game.center[:x], :y => game.center[:y]}
 		@direction = {:x => 1, :y => 0}
-		@size = {:x => BLOCK_SIZE, :y => BLOCK_SIZE}
+		@size = {:x => @BLOCK_SIZE, :y => @BLOCK_SIZE}
 		@blocks = []
 
 		@last_move = Time.now
@@ -92,12 +92,11 @@ class HeadBlock
 
 	def move
 		prev_block_center = {:x => @center[:x], :y => @center[:y]}
-		@center[:x] += @direction[:x] * BLOCK_SIZE
-		@center[:y] += @direction[:y] * BLOCK_SIZE
+		@center[:x] += @direction[:x] * @BLOCK_SIZE
+		@center[:y] += @direction[:y] * @BLOCK_SIZE
 	end
 
 	def get_object
 		{:center => @center, :color => "red", :size => {:x => 10, :y => 10}}
 	end
-
 end
