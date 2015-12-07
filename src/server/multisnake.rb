@@ -2,8 +2,8 @@ class MultisnakeGame
 	attr_accessor :center, :size, :key_code, :BLOCK_SIZE
 
 	def initialize()
-		@SCREEN_HEIGHT = 500
-		@SCREEN_WIDTH = 500
+		@SCREEN_HEIGHT = 310
+		@SCREEN_WIDTH = 310
 		@BLOCK_SIZE = 10
 		@size = {:x => @SCREEN_WIDTH, :y => @SCREEN_HEIGHT}
 		@center = {:x => @size[:x] / 2, :y => @size[:y] / 2}
@@ -61,15 +61,11 @@ class MultisnakeGame
 
   def random_square
     rand_generator = Random.new()
-
     {:x => (@size[:x] / @BLOCK_SIZE * rand_generator.rand).floor * @BLOCK_SIZE + @BLOCK_SIZE / 2,
      :y => (@size[:y] / @BLOCK_SIZE * rand_generator.rand).floor * @BLOCK_SIZE + @BLOCK_SIZE / 2}
   end
 
   def colliding?(b1, b2)
-    # puts "HERE IT COMES"
-
-    # binding.pry
     !(b1.eql?(b2) or
         b1.center[:x] + b1.size[:x] / 2 <= b2[:center][:x] - b2[:size][:x] / 2 or
         b1.center[:y] + b1.size[:y] / 2 <= b2[:center][:y] - b2[:size][:y] / 2 or
