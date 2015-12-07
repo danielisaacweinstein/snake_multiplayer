@@ -205,7 +205,7 @@ def report_collisions(bodies)
 
   for i in 0..(bodies.length - 1) do
     for j in (i + 1)..(bodies.length - 1) do
-      collisions << [bodies[i], bodies[j]] if colliding?(bodies[i], bodies[j])
+      collisions << [bodies[i], bodies[j]] if colliding?(bodies[i].get_object, bodies[j].get_object)
     end
   end
 
