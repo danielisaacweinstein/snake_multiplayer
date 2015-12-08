@@ -10,9 +10,12 @@ module Multisnake
       @center = {:x => @size[:x] / 2, :y => @size[:y] / 2}
 
       @bodies = []
-      @bodies << HeadBlock.new(self)
+      # @bodies << HeadBlock.new(self)
       add_food
+    end
 
+    def add_head(client_id)
+      @bodies << HeadBlock.new(self, client_id)
     end
 
     def add_food
@@ -29,16 +32,18 @@ module Multisnake
     # get information from the client via the websocket connection
     # which speaks to the server. Passing it through tick. Not sure
     # if this is an unwise design choice.
-    def tick(key_code)
+    def tick(key_code, client_id)
       @key_code = key_code
 
-      update
+      update(client_id)
       get_state
     end
 
-    def update
+    def update(client_id)
       @bodies.each do |body|
-        body.update if body.class.method_defined?(:update)
+        if body.class.method_defined?(:update) and body.client_id == client_id
+          body.update
+        end
       end
 
       # binding.pry
@@ -138,12 +143,19 @@ module Multisnake
   end
 
   class HeadBlock
-    attr_accessor :center, :size, :color
+    attr_accessor :center, :size, :color, :client_id
 
-    def initialize(game)
+    def initialize(game, client_id)
+      @client_id = client_id
       @game = game
       @BLOCK_SIZE = @game.BLOCK_SIZE
-      @center = {:x => @game.center[:x], :y => @game.center[:y]}
+
+      while !defined?(@center) do
+        random_center = game.random_square
+        @center = random_center if game.square_free?(random_center)
+      end
+
+      # @center = {:x => @game.center[:x], :y => @game.center[:y]}
       @direction = {:x => 1, :y => 0}
       @size = {:x => @BLOCK_SIZE, :y => @BLOCK_SIZE}
       @blocks = []

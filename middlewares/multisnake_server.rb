@@ -25,14 +25,17 @@ module Multisnake
         ws.on :open do |event|
           p [:open, ws.object_id]
           @clients << ws
+          @game.add_head(ws.object_id)
         end
 
         ws.on :message do |event|
           p [:message, event.data]
 
+          puts ws.object_id
+
           # binding.pry
           key_code = event.data.to_i
-          state = @game.tick(key_code)
+          state = @game.tick(key_code, ws.object_id)
           json_game_state = JSON.generate(state)
           ws.send(json_game_state)
         end
