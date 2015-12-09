@@ -25,13 +25,12 @@ module Multisnake
         ws.on :open do |event|
           p [:open, ws.object_id]
           @clients << ws
-          @game.add_head(ws.object_id)
+          start_game if @clients.length >= 2
         end
 
         ws.on :message do |event|
+          #if event.data.type
           p [:message, event.data]
-
-          puts ws.object_id
 
           # binding.pry
           key_code = event.data.to_i
@@ -46,11 +45,18 @@ module Multisnake
           ws = nil
         end
 
-        loop = EM.add_periodic_timer(0.2) {
-          state = @game.tick(45, ws.object_id)
-          json_game_state = JSON.generate(state)
-          ws.send(json_game_state)
-        }
+        def start_game
+          @clients.each { |client|
+            @game.add_head(client.object_id)
+          }
+          loop = EM.add_periodic_timer(0.2) {
+            @clients.each { |client|
+              state = @game.tick(45, client.object_id)
+              json_game_state = JSON.generate(state)
+              client.send(json_game_state)
+            }
+          }
+        end
 
         # Return async Rack response
         ws.rack_response
