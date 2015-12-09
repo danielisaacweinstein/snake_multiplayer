@@ -175,8 +175,9 @@ module Multisnake
     end
 
     def collision(other_body)
-      # puts "HeadBlock collision ==> death"
-      # puts "EATEN" if other_body.class.name == "FoodBlock"
+      # if other_body.class.name == 
+      # # puts "HeadBlock collision ==> death"
+      # # puts "EATEN" if other_body.class.name == "FoodBlock"
       eat
     end
 
