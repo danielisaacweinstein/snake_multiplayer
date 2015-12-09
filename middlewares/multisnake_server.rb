@@ -10,12 +10,12 @@ require 'pry'
 module Multisnake
   class MultisnakeServer
     KEEPALIVE_TIME = 15 # in seconds
-    CHANNEL        = "chat-demo"
 
     def initialize(app)
-      @app     = app
-      @clients = []
-      @game = MultisnakeGame.new()
+      @game      = MultisnakeGame.new()
+      @last_tick = Time.now
+      @app       = app
+      @clients   = []
     end
 
     def call(env)
@@ -30,33 +30,36 @@ module Multisnake
         ws.on :message do |event|
           p [:message, event.data]
 
-          key_code = event.data.to_i
-          state = @game.tick(key_code, ws.object_id)
-          json_game_state = JSON.generate(state)
-          ws.send(json_game_state)
+          if Time.now > @last_tick + (0.2).to_f
+            key_code = event.data.to_i
+            @game.tick(key_code, ws.object_id)
+            @last_tick = Time.now
+          end
         end
 
         ws.on :close do |event|
           p [:close, ws.object_id, event.code, event.reason]
           @clients.delete(ws)
-
-          # EM.cancel_timer(@loop)
-
           ws = nil
-
         end
 
         def start_game
-          @clients.each { |client|
-            @game.add_head(client.object_id)
-          }
-          @loop = EM.add_periodic_timer(0.2) {
-            @clients.each { |client|
+          @clients.each { |client| @game.add_head(client.object_id) }
+          
+          @loop = EM.add_periodic_timer(0.2) do
+            @clients.each do |client|
               state = @game.tick(45, client.object_id)
               json_game_state = JSON.generate(state)
               client.send(json_game_state)
-            }
-          }
+
+              if state[:game_over]
+                binding.pry
+                EM.cancel_timer
+                # close connection
+              end
+
+            end
+          end
         end
 
         # Return async Rack response
@@ -66,14 +69,5 @@ module Multisnake
         @app.call(env)
       end
     end
-
-    # def end_game
-      # remove clients
-    # end
-
-    # def new_game
-
-    # end
-
   end
 end

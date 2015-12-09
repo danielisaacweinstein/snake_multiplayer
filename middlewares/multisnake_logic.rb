@@ -6,6 +6,7 @@ module Multisnake
       @SCREEN_HEIGHT = 310
       @SCREEN_WIDTH = 310
       @BLOCK_SIZE = 10
+      @game_over = false
       @score = 0
       @size = {:x => @SCREEN_WIDTH, :y => @SCREEN_HEIGHT}
       @center = {:x => @size[:x] / 2, :y => @size[:y] / 2}
@@ -39,8 +40,7 @@ module Multisnake
 
     def die
       @bodies = []
-      # binding.pry
-      # @server.loop.cancel_timer(@server.loop)
+      @game_over = true
     end
 
     def update(client_id)
@@ -54,10 +54,10 @@ module Multisnake
     end
 
     def get_state
-      mockup_data = {}
-      mockup_data[:board] = {:size => {:width => 310, :height => 310}}
-
+      state = {}
+      state[:board] = {:size => {:width => 310, :height => 310}}
       snakes = []
+
       @bodies.each do |body|
         snake_object = {}
         snake_object[:headblock] = body.get_object
@@ -65,13 +65,15 @@ module Multisnake
         snakes << snake_object
       end
 
-      mockup_data[:snakes] = snakes
-      mockup_data
+      state[:snakes] = snakes
+      state[:score] = @score
+      state[:game_over] = @game_over
+
+      state
     end
 
     def random_square
       rand_generator = Random.new()
-
       {:x => (@size[:x] / @BLOCK_SIZE * rand_generator.rand).floor * @BLOCK_SIZE + @BLOCK_SIZE / 2,
        :y => (@size[:y] / @BLOCK_SIZE * rand_generator.rand).floor * @BLOCK_SIZE + @BLOCK_SIZE / 2}
     end
