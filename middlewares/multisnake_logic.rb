@@ -6,6 +6,7 @@ module Multisnake
       @SCREEN_HEIGHT = 310
       @SCREEN_WIDTH = 310
       @BLOCK_SIZE = 10
+      @score = 0
       @size = {:x => @SCREEN_WIDTH, :y => @SCREEN_HEIGHT}
       @center = {:x => @size[:x] / 2, :y => @size[:y] / 2}
       @bodies = []
@@ -32,8 +33,14 @@ module Multisnake
       get_state
     end
 
+    def increase_score
+      @score += 1
+    end
+
     def die
       @bodies = []
+      # binding.pry
+      # @server.loop.cancel_timer(@server.loop)
     end
 
     def update(client_id)
@@ -180,6 +187,7 @@ module Multisnake
     def eat
       @add_block = true
       @game.add_food
+      @game.increase_score
     end
 
     def handle_keyboard(key_code)

@@ -20,7 +20,6 @@ module Multisnake
 
     def call(env)
       if Faye::WebSocket.websocket?(env)
-        # ping sends a message every X number of seconts to keep connection alive.
         ws = Faye::WebSocket.new(env, nil, {ping: KEEPALIVE_TIME })
         ws.on :open do |event|
           p [:open, ws.object_id]
@@ -29,10 +28,8 @@ module Multisnake
         end
 
         ws.on :message do |event|
-          #if event.data.type
           p [:message, event.data]
 
-          # binding.pry
           key_code = event.data.to_i
           state = @game.tick(key_code, ws.object_id)
           json_game_state = JSON.generate(state)
@@ -42,14 +39,18 @@ module Multisnake
         ws.on :close do |event|
           p [:close, ws.object_id, event.code, event.reason]
           @clients.delete(ws)
+
+          # EM.cancel_timer(@loop)
+
           ws = nil
+
         end
 
         def start_game
           @clients.each { |client|
             @game.add_head(client.object_id)
           }
-          loop = EM.add_periodic_timer(0.2) {
+          @loop = EM.add_periodic_timer(0.2) {
             @clients.each { |client|
               state = @game.tick(45, client.object_id)
               json_game_state = JSON.generate(state)
@@ -65,5 +66,14 @@ module Multisnake
         @app.call(env)
       end
     end
+
+    # def end_game
+      # remove clients
+    # end
+
+    # def new_game
+
+    # end
+
   end
 end
