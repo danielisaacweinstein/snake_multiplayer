@@ -46,6 +46,12 @@ module Multisnake
           ws = nil
         end
 
+        loop = EM.add_periodic_timer(0.2) {
+          state = @game.tick(45, ws.object_id)
+          json_game_state = JSON.generate(state)
+          ws.send(json_game_state)
+        }
+
         # Return async Rack response
         ws.rack_response
 
