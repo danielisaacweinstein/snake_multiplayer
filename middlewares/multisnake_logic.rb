@@ -8,9 +8,8 @@ module Multisnake
       @BLOCK_SIZE = 10
       @size = {:x => @SCREEN_WIDTH, :y => @SCREEN_HEIGHT}
       @center = {:x => @size[:x] / 2, :y => @size[:y] / 2}
-
       @bodies = []
-      # @bodies << HeadBlock.new(self)
+
       add_food
     end
 
@@ -26,17 +25,15 @@ module Multisnake
       @bodies << body
     end
 
-    # In the JavaScript version, we ultimately got keyboard state
-    # from the Keyboarder object that was created on the headblock.
-    # For now, we need to get the updates from the client, and we
-    # get information from the client via the websocket connection
-    # which speaks to the server. Passing it through tick. Not sure
-    # if this is an unwise design choice.
     def tick(key_code, client_id)
       @key_code = key_code
 
       update(client_id)
       get_state
+    end
+
+    def die
+      @bodies = []
     end
 
     def update(client_id)
@@ -46,7 +43,6 @@ module Multisnake
         end
       end
 
-      # binding.pry
       report_collisions(@bodies)
     end
 
@@ -143,7 +139,7 @@ module Multisnake
   end
 
   class HeadBlock
-    attr_accessor :center, :size, :color, :client_id
+    attr_accessor :center, :size, :color, :client_id, :blocks
 
     def initialize(game, client_id)
       @client_id = client_id
@@ -155,7 +151,6 @@ module Multisnake
         @center = random_center if game.square_free?(random_center)
       end
 
-      # @center = {:x => @game.center[:x], :y => @game.center[:y]}
       @direction = {:x => 1, :y => 0}
       @size = {:x => @BLOCK_SIZE, :y => @BLOCK_SIZE}
       @blocks = []
@@ -175,10 +170,11 @@ module Multisnake
     end
 
     def collision(other_body)
-      # if other_body.class.name == 
-      # # puts "HeadBlock collision ==> death"
-      # # puts "EATEN" if other_body.class.name == "FoodBlock"
-      eat
+      if other_body.class.name.include?("BodyBlock")
+        @game.die
+      elsif other_body.class.name.include?("FoodBlock")
+        eat
+      end
     end
 
     def eat
