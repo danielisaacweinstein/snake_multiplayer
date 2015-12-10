@@ -1,6 +1,6 @@
 module Multisnake
   class MultisnakeGame
-    attr_accessor :center, :size, :key_code, :BLOCK_SIZE
+    attr_accessor :center, :size, :key_code, :BLOCK_SIZE, :last_moves
 
     def initialize()
       @SCREEN_HEIGHT = 310
@@ -27,10 +27,9 @@ module Multisnake
       @bodies << body
     end
 
-    def tick(key_code, client_id)
-      @key_code = key_code
-
-      update(client_id)
+    def tick(last_moves)
+      @last_moves = last_moves
+      update
       get_state
     end
 
@@ -43,9 +42,9 @@ module Multisnake
       @game_over = true
     end
 
-    def update(client_id)
+    def update
       @bodies.each do |body|
-        if body.class.method_defined?(:update) and body.client_id == client_id
+        if body.class.method_defined?(:update)
           body.update
         end
       end
@@ -163,19 +162,12 @@ module Multisnake
       @direction = {:x => 1, :y => 0}
       @size = {:x => @BLOCK_SIZE, :y => @BLOCK_SIZE}
       @blocks = []
-
-      @last_move = Time.now
       @add_block = false
     end
 
     def update
-      handle_keyboard(@game.key_code)
-
-      now = Time.now
-      if (now > @last_move)
-        move
-        @last_move = now
-      end
+      handle_keyboard(@game.last_moves[@client_id.to_s.to_sym])
+      move
     end
 
     def collision(other_body)
@@ -227,7 +219,6 @@ module Multisnake
         @blocks[i].center = {:x => prev_block_center[:x], :y => prev_block_center[:y]}
         prev_block_center = old_center
       end
-
     end
 
     def get_object
