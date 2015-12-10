@@ -26,9 +26,9 @@ module Multisnake
         new_snake = HeadBlock.new(self, client)
 
         if index == 0
-          new_snake.set_color("041648")
+          new_snake.set_color("#6E0053")
         else index == 1
-          new_snake.set_color("FF398F")
+          new_snake.set_color("#0A0A69")
         end
 
         add_body(new_snake)
@@ -258,7 +258,7 @@ module Multisnake
 
     def get_object
       {:center => @center,
-       :color => "red",
+       :color => @color,
        :size => {:x => 10,
                  :y => 10}}
     end
