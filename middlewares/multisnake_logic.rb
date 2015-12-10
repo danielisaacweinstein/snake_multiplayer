@@ -3,8 +3,8 @@ module Multisnake
     attr_accessor :BLOCK_SIZE, :size, :last_moves
 
     def initialize(client_ids)
-      @SCREEN_HEIGHT = 310
-      @SCREEN_WIDTH = 310
+      @SCREEN_HEIGHT = 500
+      @SCREEN_WIDTH = 500
       @BLOCK_SIZE = 10
 
       @size   = {:x => @SCREEN_WIDTH,

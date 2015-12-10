@@ -8,6 +8,7 @@
     this.size = { width: screen.canvas.width, height: screen.canvas.height };
     this.socket = new WebSocket('ws://localhost:4567');
     this.dataReceived = null;
+    this.boardDimensionsSet = false;
     this.message = 'Waiting for players...'
 
     var keyhandler = new Keyboarder(this.socket);
@@ -22,6 +23,13 @@
       if (typeof e.data == "string") {
           self.message = '';
           self.dataReceived = JSON.parse(e.data);
+          if (!this.boardDimensionsSet) {
+            self.size.width = self.dataReceived.board.size.width;
+            self.size.height = self.dataReceived.board.size.height;
+            screen.canvas.width = self.dataReceived.board.size.width;
+            screen.canvas.height = self.dataReceived.board.size.height;
+            self.boardDimensionsSet = true;
+          }
           if (self.dataReceived.game_over) {
             self.message = 'Game Over';
           }
@@ -66,10 +74,10 @@
         screen.fillText(this.message, this.size.width / 2 - messageWidth / 2, 50);
 
         if (!!data) {
-          var gameOverScore = data.score,
+          screen.font = "40px serif";
+          var gameOverScore = "SCORE: " + data.score,
               gameOverScoreWidth = screen.measureText(gameOverScore).width;
-
-          screen.fillText("SCORE: " + gameOverScore, this.size.width / 2 - gameOverScoreWidth / 2, 90);
+          screen.fillText(gameOverScore, this.size.width / 2 - gameOverScoreWidth / 2, 120);
         }
 
 
