@@ -1,22 +1,28 @@
 module Multisnake
   class MultisnakeGame
-    attr_accessor :center, :size, :key_code, :BLOCK_SIZE, :last_moves
+    attr_accessor :BLOCK_SIZE, :size, :last_moves
 
-    def initialize()
+    def initialize(client_ids)
       @SCREEN_HEIGHT = 310
       @SCREEN_WIDTH = 310
       @BLOCK_SIZE = 10
+
+      @size   = {:x => @SCREEN_WIDTH,
+                 :y => @SCREEN_HEIGHT}
+      @center = {:x => @size[:x] / 2,
+                 :y => @size[:y] / 2}
+
+      @client_ids = client_ids
       @game_over = false
       @score = 0
-      @size = {:x => @SCREEN_WIDTH, :y => @SCREEN_HEIGHT}
-      @center = {:x => @size[:x] / 2, :y => @size[:y] / 2}
       @bodies = []
 
-      add_food
+      arrange_new_board
     end
 
-    def add_head(client_id)
-      @bodies << HeadBlock.new(self, client_id)
+    def arrange_new_board
+      add_body(FoodBlock.new(self))
+      @client_ids.each {|client| add_body(HeadBlock.new(self, client))}
     end
 
     def add_food
@@ -54,13 +60,12 @@ module Multisnake
 
     def get_state
       state = {}
-      state[:board] = {:size => {:width => 310, :height => 310}}
+      state[:board] = {:size => {:width => @SCREEN_WIDTH, :height => @SCREEN_HEIGHT}}
       snakes = []
 
       @bodies.each do |body|
         snake_object = {}
         snake_object[:headblock] = body.get_object
-        snake_object[:bodyblocks] = []
         snakes << snake_object
       end
 
@@ -142,7 +147,10 @@ module Multisnake
     end
 
     def get_object
-      {:center => @center, :color => "green", :size => {:x => 10, :y => 10}}
+      {:center => @center,
+       :color => "green",
+       :size => {:x => 10,
+                 :y => 10}}
     end
   end
 
@@ -152,7 +160,6 @@ module Multisnake
     def initialize(game, client_id)
       @client_id = client_id
       @game = game
-      @BLOCK_SIZE = @game.BLOCK_SIZE
 
       while !defined?(@center) do
         random_center = game.random_square
@@ -160,7 +167,7 @@ module Multisnake
       end
 
       @direction = {:x => 1, :y => 0}
-      @size = {:x => @BLOCK_SIZE, :y => @BLOCK_SIZE}
+      @size = {:x => @game.BLOCK_SIZE, :y => @game.BLOCK_SIZE}
       @blocks = []
       @add_block = false
     end
@@ -204,8 +211,8 @@ module Multisnake
 
     def move
       prev_block_center = {:x => @center[:x], :y => @center[:y]}
-      @center[:x] += @direction[:x] * @BLOCK_SIZE
-      @center[:y] += @direction[:y] * @BLOCK_SIZE
+      @center[:x] += @direction[:x] * @game.BLOCK_SIZE
+      @center[:y] += @direction[:y] * @game.BLOCK_SIZE
 
       if @add_block == true
         block = BodyBlock.new(@game, prev_block_center)
@@ -216,13 +223,17 @@ module Multisnake
 
       @blocks.each_with_index do |block, i|
         old_center = @blocks[i].center
-        @blocks[i].center = {:x => prev_block_center[:x], :y => prev_block_center[:y]}
+        @blocks[i].center = {:x => prev_block_center[:x],
+                             :y => prev_block_center[:y]}
         prev_block_center = old_center
       end
     end
 
     def get_object
-      {:center => @center, :color => "red", :size => {:x => 10, :y => 10}}
+      {:center => @center,
+       :color => "red",
+       :size => {:x => 10,
+                 :y => 10}}
     end
   end
 
@@ -232,11 +243,14 @@ module Multisnake
     def initialize(game, center)
       @game = game
       @center = center
-      @size = game.BLOCK_SIZE
+      @size = @game.BLOCK_SIZE
     end
 
     def get_object
-      {:center => @center, :color => "black", :size => {:x => @game.BLOCK_SIZE, :y => @game.BLOCK_SIZE}}
+      {:center => @center,
+       :color => "black",
+       :size => {:x => @game.BLOCK_SIZE,
+                 :y => @game.BLOCK_SIZE}}
     end
   end
 end
