@@ -56,6 +56,19 @@ module Multisnake
       end
 
       report_collisions(@bodies)
+      out_of_bounds?
+    end
+
+    def out_of_bounds?
+      @bodies.each do |body|
+        if body.class.name.include?("HeadBlock")
+          die if (body.center[:x] + (@BLOCK_SIZE / 2) > @SCREEN_WIDTH or
+                  body.center[:x] - (@BLOCK_SIZE / 2) < 0 or
+                  body.center[:y] + (@BLOCK_SIZE / 2) > @SCREEN_HEIGHT or
+                  body.center[:y] - (@BLOCK_SIZE / 2) < 0)
+          end
+        end
+      end
     end
 
     def get_state
