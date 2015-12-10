@@ -3,8 +3,8 @@ module Multisnake
     attr_accessor :BLOCK_SIZE, :size, :last_moves
 
     def initialize(client_ids)
-      @SCREEN_HEIGHT = 310
-      @SCREEN_WIDTH = 310
+      @SCREEN_HEIGHT = 500
+      @SCREEN_WIDTH = 500
       @BLOCK_SIZE = 10
 
       @size   = {:x => @SCREEN_WIDTH,
@@ -22,7 +22,17 @@ module Multisnake
 
     def arrange_new_board
       add_body(FoodBlock.new(self))
-      @client_ids.each {|client| add_body(HeadBlock.new(self, client))}
+      @client_ids.each_with_index do |client, index|
+        new_snake = HeadBlock.new(self, client)
+
+        if index == 0
+          new_snake.set_color("041648")
+        else index == 1
+          new_snake.set_color("FF398F")
+        end
+
+        add_body(new_snake)
+      end
     end
 
     def add_food
@@ -172,6 +182,7 @@ module Multisnake
     def initialize(game, client_id)
       @client_id = client_id
       @game = game
+      @color = "black"
 
       while !defined?(@center) do
         random_center = game.random_square
@@ -182,6 +193,10 @@ module Multisnake
       @size = {:x => @game.BLOCK_SIZE, :y => @game.BLOCK_SIZE}
       @blocks = []
       @add_block = false
+    end
+
+    def set_color(color)
+      @color = color
     end
 
     def update
