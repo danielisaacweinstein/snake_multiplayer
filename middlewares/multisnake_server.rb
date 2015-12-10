@@ -1,7 +1,6 @@
 require_relative 'multisnake_logic'
 require 'faye/websocket'
 require 'thread'
-require 'redis'
 require 'json'
 require 'erb'
 require 'pry'
@@ -12,48 +11,46 @@ module Multisnake
     KEEPALIVE_TIME = 15 # in seconds
 
     def initialize(app)
-      @game       = MultisnakeGame.new()
-      @last_moves = {}
-      @app        = app
-      @clients    = []
-      @number_of_times_started = 0
+      @clients = []
+      @moves   = {}
+      @app     = app
     end
 
     def call(env)
       if Faye::WebSocket.websocket?(env)
         ws = Faye::WebSocket.new(env, nil, {ping: KEEPALIVE_TIME })
+
+        # Initiate game when we've established two connections.
         ws.on :open do |event|
-          p [:open, ws.object_id]
           @clients << ws
-          @last_moves[ws.object_id.to_s.to_sym]
-          if @clients.length >= 2 and @number_of_times_started == 0
-            start_game
-            @number_of_times_started += 1
-          end
+          start_game if @clients.length == 2
         end
 
+        # On message, update move hash for latest client actions.
         ws.on :message do |event|
-          p [:message, event.data]
-
           key_code = event.data.to_i
-          @last_moves[ws.object_id.to_s.to_sym] = key_code
+          @moves[ws.object_id.to_s.to_sym] = key_code
         end
 
+        # On close, delete the WebSocket from list of clients.
         ws.on :close do |event|
-          p [:close, ws.object_id, event.code, event.reason]
-
           @clients.delete(ws)
           ws = nil
         end
 
+        # Instruct game to create two players and initiate game loop.
         def start_game
-          @clients.each { |client| @game.add_head(client.object_id) }
+          client_IDs = [@clients[0].object_id, @clients[1].object_id]
 
-          @loop = EM.add_periodic_timer(0.2) do
-            state = @game.tick(@last_moves)
+          @game = MultisnakeGame.new(client_IDs)
+
+          game_interval = 0.2
+          @loop = EM.add_periodic_timer(game_interval) do
+            state = @game.tick(@moves)
             json_game_state = JSON.generate(state)
             @clients.each {|client| client.send(json_game_state)}
             
+            # Game ends when players lose or client loses connection.
             if state[:game_over] or @clients.length < 2
               EM.cancel_timer
             end
