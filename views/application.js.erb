@@ -22,7 +22,9 @@
       if (typeof e.data == "string") {
           self.message = '';
           self.dataReceived = JSON.parse(e.data);
-          console.log(e.data);
+          if (self.dataReceived.game_over) {
+            self.message = 'Game Over';
+          }
           self.draw(screen);
           console.log(self.dataReceived);
       }
@@ -62,7 +64,22 @@
         screen.font = "20px serif";
         var messageWidth = screen.measureText(this.message).width;
         screen.fillText(this.message, this.size.width / 2 - messageWidth / 2, 50);
+
+        if (!!data) {
+          var gameOverScore = data.score,
+              gameOverScoreWidth = screen.measureText(gameOverScore).width;
+
+          screen.fillText("SCORE: " + gameOverScore, this.size.width / 2 - gameOverScoreWidth / 2, 90);
+        }
+
+
       } else {
+        // Draw score
+        var scoreMessage = data.score;
+        screen.fillStyle = "#000000";
+        screen.font = "10px serif";
+        screen.fillText("SCORE: " + scoreMessage, 10, 20);
+
         // Draw the bodies
         data.snakes.map(function(snake){
           drawRect(screen, snake.headblock, snake.headblock.color);

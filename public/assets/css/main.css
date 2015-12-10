@@ -1,5 +1,15 @@
+html {
+  background-color: #191717;
+}
+
 body {
   margin: 0 auto;
   display: table;
   text-align: center;
+  color: #C5C5C5;
+}
+
+canvas {
+  background-color: #E8DFDF;
+  border: 10px solid #752020;
 }
