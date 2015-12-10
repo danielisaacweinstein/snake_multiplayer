@@ -5,8 +5,10 @@
   var Game = function() {
     var screen = document.getElementById("screen").getContext('2d');
 
+    this.size = { width: screen.canvas.width, height: screen.canvas.height };
     this.socket = new WebSocket('ws://localhost:4567');
     this.dataReceived = null;
+    this.message = 'Waiting for players...'
 
     var keyhandler = new Keyboarder(this.socket);
 
@@ -18,7 +20,9 @@
 
     this.socket.onmessage = function(e) {
       if (typeof e.data == "string") {
+          self.message = '';
           self.dataReceived = JSON.parse(e.data);
+          console.log(e.data);
           self.draw(screen);
           console.log(self.dataReceived);
       }
@@ -44,26 +48,28 @@
           console.log("Connection not opened.")
       }
     }
+
+    this.draw(screen);
   };
 
   Game.prototype = {
     draw: function(screen) {
       data = this.dataReceived;
-      console.log(data)
+      screen.clearRect(0, 0, this.size.width, this.size.height);
 
-      // Clear screen
-      screen.clearRect(0, 0, data.board.size.width, data.board.size.height);
-
-      // Draw the bodies
-      data.snakes.map(function(snake){
-        drawRect(screen, snake.headblock, snake.headblock.color);
-        // snake.bodyblocks.map(function(bodyBlock){
-        //   drawRect(screen, bodyBlock, bodyBlock.color);
-        // }.bind(screen));
-      }.bind(screen));
+      if (this.message) {
+        //If there is any message it will show it
+        screen.font = "20px serif";
+        var messageWidth = screen.measureText(this.message).width;
+        screen.fillText(this.message, this.size.width / 2 - messageWidth / 2, 50);
+      } else {
+        // Draw the bodies
+        data.snakes.map(function(snake){
+          drawRect(screen, snake.headblock, snake.headblock.color);
+        }.bind(screen));
+      }
     }
   };
-
 
   var Keyboarder = function(socket) {
     var keyState = {};
