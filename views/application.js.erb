@@ -1,4 +1,5 @@
 ;(function() {
+
   var BLOCK_SIZE = 10;
 
   var Game = function() {
@@ -56,9 +57,9 @@
       // Draw the bodies
       data.snakes.map(function(snake){
         drawRect(screen, snake.headblock, snake.headblock.color);
-        snake.bodyblocks.map(function(bodyBlock){
-          drawRect(screen, bodyBlock, bodyBlock.color);
-        }.bind(screen));
+        // snake.bodyblocks.map(function(bodyBlock){
+        //   drawRect(screen, bodyBlock, bodyBlock.color);
+        // }.bind(screen));
       }.bind(screen));
     }
   };
