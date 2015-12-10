@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-ruby "2.2.1"
+ruby "2.2.3"
 
 gem "eventmachine", "~>1.0.4"
 gem "faye-websocket"
