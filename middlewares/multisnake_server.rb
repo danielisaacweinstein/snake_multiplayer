@@ -44,7 +44,7 @@ module Multisnake
 
           @game = MultisnakeGame.new(client_IDs)
 
-          game_interval = 0.2
+          game_interval = 0.1
           @loop = EM.add_periodic_timer(game_interval) do
             state = @game.tick(@moves)
             json_game_state = JSON.generate(state)

@@ -21,7 +21,8 @@ module Multisnake
     end
 
     def arrange_new_board
-      add_body(FoodBlock.new(self))
+      add_food
+
       @client_ids.each_with_index do |client, index|
         new_snake = HeadBlock.new(self, client)
 
@@ -153,6 +154,7 @@ module Multisnake
 
     def initialize(game)
       @game = game
+      @color = "#1E3E00"
       @center
 
       while !defined?(@center) do
@@ -170,7 +172,7 @@ module Multisnake
 
     def get_object
       {:center => @center,
-       :color => "green",
+       :color => @color,
        :size => {:x => 10,
                  :y => 10}}
     end
