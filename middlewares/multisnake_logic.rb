@@ -66,7 +66,6 @@ module Multisnake
                   body.center[:x] - (@BLOCK_SIZE / 2) < 0 or
                   body.center[:y] + (@BLOCK_SIZE / 2) > @SCREEN_HEIGHT or
                   body.center[:y] - (@BLOCK_SIZE / 2) < 0)
-          end
         end
       end
     end
