@@ -38,6 +38,8 @@ module Multisnake
 
     def add_food
       add_body(FoodBlock.new(self))
+      add_body(FoodBlock.new(self))
+      add_body(FoodBlock.new(self))
     end
 
     def add_body(body)
