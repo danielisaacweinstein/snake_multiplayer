@@ -4,9 +4,11 @@
 
   var Game = function() {
     var screen = document.getElementById("screen").getContext('2d');
+    var scheme = "wss://"; 
+    var uri = scheme + window.document.location.host + "/"; 
 
     this.size = { width: screen.canvas.width, height: screen.canvas.height };
-    this.socket = new WebSocket('ws://localhost:4567');
+    this.socket = new WebSocket(uri);
     this.dataReceived = null;
     this.boardDimensionsSet = false;
     this.message = 'Waiting for players...'
