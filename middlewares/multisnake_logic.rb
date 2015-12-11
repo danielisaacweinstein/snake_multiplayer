@@ -162,7 +162,7 @@ module Multisnake
         @center = random_center if game.square_free?(random_center)
       end
 
-      @size = {:x => game.BLOCK_SIZE * 2, :y => game.BLOCK_SIZE * 2}
+      @size = {:x => game.BLOCK_SIZE, :y => game.BLOCK_SIZE}
 
     end
 
@@ -173,8 +173,8 @@ module Multisnake
     def get_object
       {:center => @center,
        :color => @color,
-       :size => {:x => 10,
-                 :y => 10}}
+       :size => {:x => 10 * 2,
+                 :y => 10 * 2}}
     end
   end
 
