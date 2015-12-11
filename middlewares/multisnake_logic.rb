@@ -38,8 +38,6 @@ module Multisnake
 
     def add_food
       add_body(FoodBlock.new(self))
-      add_body(FoodBlock.new(self))
-      add_body(FoodBlock.new(self))
     end
 
     def add_body(body)
@@ -164,7 +162,7 @@ module Multisnake
         @center = random_center if game.square_free?(random_center)
       end
 
-      @size = {:x => game.BLOCK_SIZE, :y => game.BLOCK_SIZE}
+      @size = {:x => game.BLOCK_SIZE * 2, :y => game.BLOCK_SIZE * 2}
 
     end
 
