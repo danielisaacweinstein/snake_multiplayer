@@ -23,7 +23,7 @@ module Multisnake
         # Initiate game when we've established two connections.
         ws.on :open do |event|
           @clients << ws
-          start_game if @clients.length == 2
+          start_game if @clients.length == 4
         end
 
         # On message, update move hash for latest client actions.
@@ -49,7 +49,7 @@ module Multisnake
             state = @game.tick(@moves)
             json_game_state = JSON.generate(state)
             @clients.each {|client| client.send(json_game_state)}
-            
+
             # Game ends when players lose or client loses connection.
             if state[:game_over] or @clients.length < 2
               EM.cancel_timer
