@@ -40,8 +40,9 @@ module Multisnake
 
         # Instruct game to create two players and initiate game loop.
         def start_game
-          client_IDs = [@clients[0].object_id, @clients[1].object_id]
+          client_IDs = []
 
+          @clients.each_with_index { |client, index| client_IDs << @clients[index].object_id }
           @game = MultisnakeGame.new(client_IDs)
 
           game_interval = 0.1
@@ -51,7 +52,7 @@ module Multisnake
             @clients.each {|client| client.send(json_game_state)}
 
             # Game ends when players lose or client loses connection.
-            if state[:game_over] or @clients.length < 2
+            if state[:game_over] or @clients.length < 4
               EM.cancel_timer
             end
           end
