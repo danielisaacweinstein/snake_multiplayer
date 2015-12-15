@@ -173,8 +173,8 @@ module Multisnake
     def get_object
       {:center => @center,
        :color => @color,
-       :size => {:x => 10 * 2,
-                 :y => 10 * 2}}
+       :size => {:x => 10,
+                 :y => 10}}
     end
   end
 
