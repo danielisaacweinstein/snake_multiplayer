@@ -29,8 +29,15 @@ module Multisnake
 
         # On message, update move hash for latest client actions.
         ws.on :message do |event|
-          key_code = event.data.to_i
-          @moves[ws.object_id.to_s.to_sym] = key_code
+          data = eval(event.data)
+
+          key_code = data[:keycode] if data.key?(:keycode)
+          room = data[:room] if data.key?(:room)
+
+          binding.pry
+          puts data
+          @moves[ws.object_id.to_s.to_sym] = keycode
+
         end
 
         # On close, delete the WebSocket from list of clients.

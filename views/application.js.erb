@@ -4,20 +4,26 @@
 
   var Game = function() {
     var screen = document.getElementById("screen").getContext('2d');
-    var scheme = "wss://"; 
-    var uri = scheme + window.document.location.host + "/"; 
+    var scheme = "ws://";
+    var uri = scheme + window.document.location.host + "/";
 
     this.size = { width: screen.canvas.width, height: screen.canvas.height };
     this.socket = new WebSocket(uri);
     this.dataReceived = null;
     this.boardDimensionsSet = false;
-    this.message = 'Waiting for players...'
+    this.message = 'Waiting for players...';
 
-    var keyhandler = new Keyboarder(this.socket);
+    var keyhandler = new Keyboarder(this.socket, this.roomName);
 
     var self = this;
     this.socket.onopen = function() {
+        var roomName = (window.location.href).split('#')[1];
+        objectToSend = {room: roomName};
         this.isopen = true;
+
+        this.sendMessage(objectToSend, "json");
+        console.log(objectToSend);
+
         console.log("Connected!");
     }
 
@@ -98,12 +104,14 @@
     }
   };
 
-  var Keyboarder = function(socket) {
-    var keyState = {};
+  var Keyboarder = function(socket, room) {
+    var keyState = {},
+        roomName = room;
 
     window.addEventListener('keydown', function(e) {
+      var objectToSend = {keycode: e.keyCode};
       keyState[e.keyCode] = true;
-      socket.sendMessage(e.keyCode, "json");
+      socket.sendMessage(objectToSend, "json");
     });
 
     window.addEventListener('keyup', function(e) {
