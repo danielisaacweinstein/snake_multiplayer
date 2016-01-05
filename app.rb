@@ -2,6 +2,8 @@ require 'sinatra/base'
 
 module Multisnake
   class App < Sinatra::Base
+
+    # Optional room parameter when supporting multiple games at once.
     get "/?:room" do
       erb :"index.html"
     end

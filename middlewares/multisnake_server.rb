@@ -97,9 +97,9 @@ module Multisnake
         end
 
         def close_room(room)
-          room[:loop].cancel
-          @rooms.delete(room)
-          room[:clients].each {|c| c[:client].close}
+          room[:loop].cancel                          # Cancel timer
+          @rooms.delete(room)                         # Delete room
+          room[:clients].each {|c| c[:client].close}  # Close socket
         end
 
         # Return async Rack response
