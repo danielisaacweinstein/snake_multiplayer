@@ -18,7 +18,7 @@
 
     var self = this;
     this.socket.onopen = function() {
-        var roomName = (window.location.href).split('#')[1];
+        var roomName = (window.location.href).split('-')[1];
         objectToSend = {room: roomName};
         this.isopen = true;
 

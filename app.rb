@@ -2,7 +2,7 @@ require 'sinatra/base'
 
 module Multisnake
   class App < Sinatra::Base
-    get "/" do
+    get "/?:room" do
       erb :"index.html"
     end
 

@@ -8,62 +8,98 @@ require 'pry'
 # Encapsulates WebSocket logic and Rack middleware.
 module Multisnake
   class MultisnakeServer
-    KEEPALIVE_TIME = 15 # in seconds
-
+    KEEPALIVE_TIME    = 15     # In seconds
+    GAME_INTERVAL     = 0.3    # In seconds
+    DEFAULT_DIRECTION = 38     # Up
+    
     def initialize(app)
-      @clients = []
-      @moves   = {}
-      @app     = app
-      @player_count = 2
+      @rooms          = []
+      @app            = app
+      @player_count   = 1
     end
 
     def call(env)
       if Faye::WebSocket.websocket?(env)
         ws = Faye::WebSocket.new(env, nil, {ping: KEEPALIVE_TIME })
 
-        # Initiate game when we've established two connections.
         ws.on :open do |event|
-          @clients << ws
-          start_game if @clients.length == @player_count
+          puts "Established connection with client: " + ws.object_id.to_s
         end
 
-        # On message, update move hash for latest client actions.
         ws.on :message do |event|
           data = eval(event.data)
-
-          key_code = data[:keycode] if data.key?(:keycode)
-          room = data[:room] if data.key?(:room)
-
-          binding.pry
-          puts data
-          @moves[ws.object_id.to_s.to_sym] = keycode
-
+          handle_websocket_message(ws, data)
         end
 
-        # On close, delete the WebSocket from list of clients.
         ws.on :close do |event|
-          @clients.delete(ws)
+          puts "Closing connection with client: " + ws.object_id.to_s
+
+          client = find_client(ws)
+          room = @rooms.find {|r| r[:clients].include?(client)}
+          close_room(room)
+
           ws = nil
         end
 
-        # Instruct game to create two players and initiate game loop.
-        def start_game
-          client_IDs = []
+        def find_client(websocket)
+          all_clients = @rooms.flat_map {|r| r[:clients]}
+          all_clients.find {|c| c[:client] == websocket }
+        end
 
-          @clients.each_with_index { |client, index| client_IDs << @clients[index].object_id }
-          @game = MultisnakeGame.new(client_IDs)
-
-          game_interval = 0.3
-          @loop = EM.add_periodic_timer(game_interval) do
-            state = @game.tick(@moves)
-            json_game_state = JSON.generate(state)
-            @clients.each {|client| client.send(json_game_state)}
-
-            # Game ends when players lose or client loses connection.
-            if state[:game_over] or @clients.length < @player_count
-              EM.cancel_timer
-            end
+        # Client sends room name through event_data in message after establishing
+        # connection, and only sends keycodes through event_data after that time.
+        def handle_websocket_message(websocket, event_data)
+          if event_data.key?(:room)
+            room_name = event_data[:room]
+            room = get_or_create_room(room_name)
+            room[:clients] << create_client(websocket)
+            run_game(room) if (room[:clients].length > @player_count and !room[:game])
+          elsif event_data.key?(:keycode)
+            move = event_data[:keycode]
+            client = find_client(websocket)
+            client[:move] = move
           end
+        end
+
+        def run_game(room)
+          # Initiate new game using client_ids from the specific room.
+          client_IDs = room[:clients].flat_map {|c| c[:client_id]}
+          room[:game] = MultisnakeGame.new(client_IDs)
+
+          # Attach game loop to the room to initiate logic.
+          room[:loop] = EM.add_periodic_timer(GAME_INTERVAL) do
+            moves = {}
+            room[:clients].each {|c| moves[c[:client_id].to_sym] = c[:move] }
+            state = room[:game].tick(moves)
+            json_game_state = JSON.generate(state)
+            room[:clients].each {|client| client[:client].send(json_game_state)}
+
+            close_room(room) if state[:game_over]
+          end
+        end
+
+        def get_or_create_room(room_name)
+          room = @rooms.find {|r| r[:name] == room_name}
+
+          if !room
+            room = { :name    => room_name,
+                     :clients => [] }
+            @rooms << room
+          end
+
+          return room
+        end
+
+        def create_client(websocket)
+          { :client    => websocket,
+            :client_id => websocket.object_id.to_s,
+            :move      => DEFAULT_DIRECTION }
+        end
+
+        def close_room(room)
+          room[:loop].cancel
+          @rooms.delete(room)
+          room[:clients].each {|c| c[:client].close}
         end
 
         # Return async Rack response
